@@ -1,0 +1,10 @@
+outputs/
+outputs_os/
+
+# alpaca_trading domain additions
+.env
+venv/
+__pycache__/
+*.pyc
+domains/alpaca_trading/live_episodes/
+.pytest_cache/

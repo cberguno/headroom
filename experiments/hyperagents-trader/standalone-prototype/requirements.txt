@@ -1,0 +1,5 @@
+requests==2.32.4
+python-dotenv==1.0.1
+litellm==1.74.9
+pandas==2.3.2
+numpy==2.1.3

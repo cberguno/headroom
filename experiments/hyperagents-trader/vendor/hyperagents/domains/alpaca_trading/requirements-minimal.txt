@@ -1,0 +1,17 @@
+# Minimal deps to run the alpaca_trading domain through domains/harness.py /
+# domains/report.py and its test suite -- NOT upstream's full requirements.txt,
+# which additionally pulls torch, Genesis, MiniHack, etc. for domains this one
+# doesn't touch. `docker` and `GitPython` are here only because utils/gl_utils.py
+# imports them at module level (needed to reach utils.gl_utils.get_score/
+# select_parent in tests); no Docker daemon or git repo access is required to
+# run this domain's own tests.
+python-dotenv==1.2.3
+litellm==1.100.0
+backoff==2.2.1
+pandas==3.0.5
+requests==2.34.2
+hydra-core==1.3.6
+omegaconf==2.3.1
+docker==7.2.0
+GitPython==3.1.61
+pytest==9.1.1

@@ -1,0 +1,10 @@
+{
+  "_comment": "Fixed chronological splits derived from real daily bars cached in data_cache/ (source: Yahoo Finance chart API, fetched 2026-09-06). Regenerate with build_date_ranges.py only if you deliberately want to roll the window forward -- do not edit by hand.",
+  "source": "yahoo_finance_chart_api",
+  "fetched_at": "2026-09-06",
+  "symbols": ["QQQ", "AAPL", "MSFT", "NVDA", "AMZN", "SPY"],
+  "warmup": {"start": "2025-08-01", "end": "2025-08-28", "trading_days": 20},
+  "train":  {"start": "2025-08-29", "end": "2026-05-18", "trading_days": 180},
+  "val":    {"start": "2026-05-19", "end": "2026-07-16", "trading_days": 40},
+  "test":   {"start": "2026-07-17", "end": "2026-09-04", "trading_days": 36}
+}

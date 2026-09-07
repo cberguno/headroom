@@ -1,0 +1,43 @@
+name: alpaca-trading-domain
+
+# Scoped entirely to experiments/hyperagents-trader/ -- a vendored copy of
+# facebookresearch/hyperagents (see experiments/hyperagents-trader/vendor/UPSTREAM_COMMIT.md)
+# plus a new alpaca_trading domain. Never touches the headroom package's own
+# CI (ci.yml), which is unaffected by anything in this path.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "experiments/hyperagents-trader/**"
+      - ".github/workflows/alpaca-trading-domain.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "experiments/hyperagents-trader/**"
+      - ".github/workflows/alpaca-trading-domain.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: experiments/hyperagents-trader/vendor/hyperagents
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install domain dependencies
+        run: pip install -r domains/alpaca_trading/requirements-minimal.txt
+      - name: Run alpaca_trading test suite
+        # No LLM or Alpaca credentials are configured in CI, by design --
+        # every test either uses real cached market data with no network
+        # call, or mocks litellm.completion, or asserts the real (expected)
+        # auth-boundary failure. See the test file's module docstring.
+        run: python -m pytest domains/alpaca_trading/tests/ -v

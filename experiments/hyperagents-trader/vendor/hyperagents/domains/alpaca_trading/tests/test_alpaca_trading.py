@@ -128,6 +128,17 @@ def test_pure_costs_apply_against_the_trader():
     assert costs.fill_price("sell", 100.0) < 100.0
 
 
+def test_pure_config_normalizes_base_url_with_trailing_v2():
+    """Regression test: broker.py appends /v2/... itself, so an
+    ALPACA_BASE_URL pasted exactly as Alpaca's dashboard shows it
+    ("https://paper-api.alpaca.markets/v2") must not double up into
+    .../v2/v2/account. Caught by hand against a real account."""
+    assert config._normalize_base_url("https://paper-api.alpaca.markets/v2") == "https://paper-api.alpaca.markets"
+    assert config._normalize_base_url("https://paper-api.alpaca.markets/v2/") == "https://paper-api.alpaca.markets"
+    assert config._normalize_base_url("https://paper-api.alpaca.markets") == "https://paper-api.alpaca.markets"
+    assert config._normalize_base_url("https://paper-api.alpaca.markets/") == "https://paper-api.alpaca.markets"
+
+
 def test_pure_config_loads_dotenv_regardless_of_import_order(tmp_path):
     """Regression test: config.py must call load_dotenv() itself. It reads
     os.environ at import time, and depending on import order (e.g. this

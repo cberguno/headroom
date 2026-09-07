@@ -45,5 +45,15 @@ CACHE_DIR = os.path.join(_HERE, "data_cache")
 PAPER_HOST = "paper-api.alpaca.markets"
 ALPACA_API_KEY = os.environ.get("ALPACA_API_KEY", "")
 ALPACA_SECRET_KEY = os.environ.get("ALPACA_SECRET_KEY", "")
-ALPACA_BASE_URL = os.environ.get("ALPACA_BASE_URL", "https://paper-api.alpaca.markets").rstrip("/")
+def _normalize_base_url(url):
+    # broker.py appends /v2/... itself; strip a trailing /v2 so pasting the
+    # endpoint exactly as Alpaca's dashboard shows it ("https://paper-api.
+    # alpaca.markets/v2") doesn't silently double up into .../v2/v2/account.
+    url = url.rstrip("/")
+    if url.endswith("/v2"):
+        url = url[: -len("/v2")]
+    return url
+
+
+ALPACA_BASE_URL = _normalize_base_url(os.environ.get("ALPACA_BASE_URL", "https://paper-api.alpaca.markets"))
 ALPACA_DATA_URL = "https://data.alpaca.markets"

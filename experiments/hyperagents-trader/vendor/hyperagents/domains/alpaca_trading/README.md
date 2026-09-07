@@ -30,13 +30,22 @@ in that file is byte-for-byte unchanged.
   `test_mocked_llm_*` and run the real `domains.harness` →
   `domains.alpaca_trading.eval` → `domains.report` dispatch with only that
   one call replaced.
-- **Never mocked, never simulated**: a real Alpaca paper account. Nothing in
-  this repo has been run against one -- see "What you still need to do"
-  below.
+- **Never mocked in the committed test suite** (it needs no credentials to
+  run in CI), but since first written this domain HAS been run for real,
+  by hand, against: Gemini (`gemini/gemini-3-flash-preview`, hit its
+  20-req/day free-tier cap fast), Nous Portal's OpenAI-compatible endpoint
+  (`openai/inclusionai/ling-3.0-flash-sante:free` via `OPENAI_API_BASE` --
+  see `.env.example` for the exact pattern for any OpenAI-compatible
+  provider), and a real Alpaca paper account (`get_account`/`get_positions`/
+  `get_daily_bars`, read-only). A 3-day real run with Nous's model produced
+  a real trade log (bought AAPL, partially sold it, bought more AAPL + QQQ)
+  and a real `report.json` with nonzero return/drawdown/Sharpe. None of this
+  is in the automated suite since it needs credentials CI doesn't have --
+  see git history for the exact commands run.
 
 Run `python -m pytest domains/alpaca_trading/tests/ -v` (from `vendor/hyperagents/`,
 after `pip install -r domains/alpaca_trading/requirements-minimal.txt`) --
-20 tests, all passing as of this commit, none requiring credentials.
+22 tests, all passing as of this commit, none requiring credentials.
 
 ## Cost math before you run this with real LLM keys
 
@@ -185,15 +194,16 @@ Run on a schedule (e.g. once per trading day) rather than in a loop.
 
 ## What wasn't run in this session, and why
 
-- **A real LLM call.** No `OPENAI_API_KEY`/`ANTHROPIC_API_KEY` is configured
-  here. Every test either uses real data with no LLM involved, mocks
-  `litellm.completion`, or asserts the real (and correctly handled) auth
-  failure. Add a key and re-run `domains.harness` directly to get a real
-  decision.
-- **A real Alpaca paper account.** No Alpaca keys are configured. `broker.py`
-  and `run_live_episode.py` are covered by tests up to the credential
-  boundary (e.g. the sandboxed child correctly never receives Alpaca creds)
-  but not exercised against a live paper account.
+- **A real LLM call and a real Alpaca account** were not configured when
+  this domain was first built, but both were later verified by hand once
+  credentials were provided (see "What's real here" above) -- committed
+  tests still don't require credentials, since CI has none. If you're
+  starting fresh yourself: no key configured means every test either uses
+  real data with no LLM involved, mocks `litellm.completion`, or asserts
+  the real (and correctly handled) auth failure. Add a key and re-run
+  `domains.harness` directly to get a real decision; add Alpaca keys and
+  call `broker.get_account()` to check connectivity before trying
+  `run_live_episode.py`.
 - **The full containerized `generate_loop.py` run.** Its `Dockerfile` builds
   from a multi-GB CUDA devel image and installs Genesis/MiniHack/torch for
   domains this one doesn't use -- a large, slow build with real resource

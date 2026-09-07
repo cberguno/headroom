@@ -128,6 +128,32 @@ def test_pure_costs_apply_against_the_trader():
     assert costs.fill_price("sell", 100.0) < 100.0
 
 
+def test_pure_config_loads_dotenv_regardless_of_import_order(tmp_path):
+    """Regression test: config.py must call load_dotenv() itself. It reads
+    os.environ at import time, and depending on import order (e.g. this
+    module gets imported before anything pulls in agent.llm, which also
+    calls load_dotenv()), .env might not be loaded yet -- silently sending
+    TRADER_LLM_MODEL's default to whatever LLM key happens to be configured
+    instead of the one actually set. Caught by hand when a real Gemini key
+    in .env was silently ignored in favor of the gpt-4o-mini default.
+
+    Runs in a subprocess with its own cwd/.env and imports ONLY
+    domains.alpaca_trading.config (never agent.llm), so this fails again if
+    config.py's own load_dotenv() call is ever removed.
+    """
+    env_file = tmp_path / ".env"
+    env_file.write_text("TRADER_LLM_MODEL=regression-test-marker-value\n")
+    script = "from domains.alpaca_trading import config; print(config.LLM_MODEL)"
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=str(tmp_path),
+        env={"PATH": os.environ.get("PATH", ""), "PYTHONPATH": REPO_ROOT},
+        capture_output=True, text=True, timeout=15,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "regression-test-marker-value"
+
+
 def test_pure_reward_matches_manual_calculation():
     curve = [100.0, 110.0]  # +10%
     fitness = reward.compute_fitness(curve)

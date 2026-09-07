@@ -1,6 +1,16 @@
 import json
 import os
 
+from dotenv import load_dotenv
+
+# Load .env ourselves rather than relying on agent/llm.py to have done it
+# first: this module reads os.environ at import time, and depending on
+# import order (e.g. domains.alpaca_trading.eval imports this before
+# task_agent.py ever pulls in agent.llm), .env might not be loaded yet --
+# which silently sends TRADER_LLM_MODEL's default (gpt-4o-mini) to whatever
+# LLM key happens to be missing instead of the one actually configured.
+load_dotenv()
+
 _HERE = os.path.dirname(os.path.abspath(__file__))
 
 with open(os.path.join(_HERE, "date_ranges.json")) as _f:

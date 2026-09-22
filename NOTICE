@@ -41,3 +41,12 @@ NumPy (optional dependency)
 Copyright (c) 2005-2024, NumPy Developers
 Licensed under the BSD 3-Clause License
 https://github.com/numpy/numpy
+
+HyperAgents (vendored, third_party/hyperagents/)
+-------------------------------------------------
+Copyright Meta Platforms, Inc.
+Licensed under CC BY-NC-SA 4.0 (Attribution-NonCommercial-ShareAlike) —
+NOTE: this is a non-commercial, share-alike license, unlike every other
+entry in this file. It is NOT part of the headroom-ai package; see
+third_party/hyperagents/VENDORED.md for details.
+https://github.com/facebookresearch/HyperAgents

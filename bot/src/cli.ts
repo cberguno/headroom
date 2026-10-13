@@ -19,7 +19,17 @@ function parseArgs(argv: string[]) {
   return out;
 }
 
+function loadDotEnv() {
+  // Existing environment variables win over values in .env.
+  try {
+    process.loadEnvFile(".env");
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
+  }
+}
+
 async function main() {
+  loadDotEnv();
   const args = parseArgs(process.argv.slice(2));
   const cfg = loadConfig();
   const history = new HistoryStore(cfg.historyDir);

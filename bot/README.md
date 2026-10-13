@@ -13,7 +13,7 @@ A single tool-calling agent loop in TypeScript (Node 22). It calls a model, runs
 ```bash
 cd bot
 npm install
-cp .env.example .env     # then edit; export the variables, or use: node --env-file=.env ...
+cp .env.example .env     # then edit .env; it is read automatically (real environment variables win)
 ```
 
 ## Run
@@ -60,7 +60,7 @@ Limits are checked between turns, after tool results are recorded, so a stopped 
 
 ## Tools
 
-- **`shell`** runs `sh -c` in a throwaway `docker run --rm` container: no network (`SHELL_NETWORK`), 512 MB, 1 CPU, all capabilities dropped, timeout (`SHELL_TIMEOUT_MS`). Only `WORKSPACE_DIR` is mounted, at `/workspace`. Image: `SHELL_IMAGE` (default `alpine:3.20`).
+- **`shell`** runs `sh -c` in a throwaway `docker run --rm` container: no network (`SHELL_NETWORK`), 512 MB, 1 CPU, all capabilities dropped, timeout (`SHELL_TIMEOUT_MS`). Only `WORKSPACE_DIR` is mounted, at `/workspace`. Image: `SHELL_IMAGE` (default `alpine:3.20`, which has no Python; use `python:3.12-alpine` for Python tasks).
 - **`read_file` / `write_file`** operate inside `WORKSPACE_DIR`. `..` traversal, absolute paths and symlinks pointing outside are rejected.
 - **`fetch_url`** fetches http(s) pages, reduces HTML to text, caps size and time, and refuses loopback/private/link-local addresses (including via DNS).
 

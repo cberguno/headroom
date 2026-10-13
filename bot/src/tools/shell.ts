@@ -47,6 +47,17 @@ export function dockerArgs(opts: Pick<ShellOptions, "image" | "network">, worksp
 export function shellTool(opts: ShellOptions): Tool {
   const exec = opts.exec ?? defaultExec;
   const maxOutput = opts.maxOutput ?? 20_000;
+  let imageReady = false;
+  /** Pull a missing image outside the command timer so a slow first download is not a timeout. */
+  const ensureImage = async () => {
+    if (imageReady) return;
+    const have = await exec("docker", ["image", "inspect", opts.image], 15_000);
+    if (have.code !== 0 && !have.stderr.includes("docker not found")) {
+      const pulled = await exec("docker", ["pull", opts.image], 600_000);
+      if (pulled.code !== 0) throw new Error(`could not pull image ${opts.image}:\n${truncate(pulled.stderr || pulled.stdout, 2000)}`);
+    }
+    imageReady = true;
+  };
   return {
     name: "shell",
     description:
@@ -59,6 +70,7 @@ export function shellTool(opts: ShellOptions): Tool {
     async run(input, ctx) {
       const command = input.command;
       if (typeof command !== "string" || !command.trim()) throw new Error("command must be a non-empty string");
+      await ensureImage();
       const name = `agent-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const res = await exec("docker", dockerArgs(opts, ctx.workspace, command, name), opts.timeoutMs);
       if (res.timedOut) {

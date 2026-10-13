@@ -60,19 +60,32 @@ describe("shell tool", () => {
     const out = await shellTool({ ...opts, exec }).run({ command: "echo hi" }, ctx());
     expect(out).toContain("exit code: 0");
     expect(out).toContain("hi");
-    expect(vi.mocked(exec).mock.calls[0]![0]).toBe("docker");
-    expect(vi.mocked(exec).mock.calls[0]![1]).toContain(`${ws}:/workspace`);
+    const runCall = vi.mocked(exec).mock.calls.find((c) => c[1][0] === "run")!;
+    expect(runCall[0]).toBe("docker");
+    expect(runCall[1]).toContain(`${ws}:/workspace`);
   });
 
   it("raises an error carrying output for non-zero exits", async () => {
-    const exec: ExecFn = async () => ({ stdout: "", stderr: "bad", code: 2, timedOut: false });
+    const exec: ExecFn = async (_f, args) => ({ stdout: "", stderr: "bad", code: args[0] === "run" ? 2 : 0, timedOut: false });
     await expect(shellTool({ ...opts, exec }).run({ command: "false" }, ctx())).rejects.toThrow(/exit code: 2[\s\S]*bad/);
   });
 
+  it("pulls a missing image before running, and only checks once", async () => {
+    const calls: string[] = [];
+    const exec: ExecFn = async (_f, args) => {
+      calls.push(args.slice(0, 2).join(" "));
+      return { stdout: "", stderr: "", code: args[0] === "image" ? 1 : 0, timedOut: false };
+    };
+    const tool = shellTool({ ...opts, exec });
+    await tool.run({ command: "a" }, ctx());
+    await tool.run({ command: "b" }, ctx());
+    expect(calls).toEqual(["image inspect", "pull alpine:3.20", "run --rm", "run --rm"]);
+  });
+
   it("kills the container and errors on timeout", async () => {
-    const exec = vi.fn<ExecFn>(async (_f, args) => ({ stdout: "", stderr: "", code: null, timedOut: args[0] === "run" }));
+    const exec = vi.fn<ExecFn>(async (_f, args) => ({ stdout: "", stderr: "", code: args[0] === "run" ? null : 0, timedOut: args[0] === "run" }));
     await expect(shellTool({ ...opts, exec }).run({ command: "sleep 99" }, ctx())).rejects.toThrow(/timed out/);
-    expect(exec.mock.calls[1]![1].slice(0, 2)).toEqual(["rm", "-f"]);
+    expect(exec.mock.calls.at(-1)![1].slice(0, 2)).toEqual(["rm", "-f"]);
   });
 
   it("truncates huge output and validates input", async () => {
